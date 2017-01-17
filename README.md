@@ -14,4 +14,5 @@
 ![Screenshot](https://raw.githubusercontent.com/amap-demo/android-location-checkin/master/apk/picture.jpg)    
 
 ## 扫一扫安装##
-![Screenshot]( https://raw.githubusercontent.com/amap-demo/android-location-checkin/master/resource/download.png)  
+![Screenshot]( https://raw.githubusercontent.com/amap-demo/android-location-checkin/master/apk/download.png)  
+
