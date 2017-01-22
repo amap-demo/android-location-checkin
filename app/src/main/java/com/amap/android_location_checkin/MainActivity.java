@@ -64,12 +64,13 @@ public class MainActivity extends Activity implements AMap.OnCameraChangeListene
         setContentView(R.layout.activity_main);
         mapView = (MapView) findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
+        resultData = new ArrayList<>();
         init();
         //初始化定位
         initLocation();
         //开始定位
         startLocation();
-        resultData = new ArrayList<>();
+
     }
 
     private void init() {
@@ -84,6 +85,7 @@ public class MainActivity extends Activity implements AMap.OnCameraChangeListene
 
         listView = (ListView) findViewById(R.id.listview);
         searchResultAdapter = new SearchResultAdapter(MainActivity.this);
+        searchResultAdapter.setData(resultData);
         listView.setAdapter(searchResultAdapter);
 
         listView.setOnItemClickListener(onItemClickListener);
@@ -252,7 +254,6 @@ public class MainActivity extends Activity implements AMap.OnCameraChangeListene
     protected void onResume() {
         super.onResume();
         mapView.onResume();
-        startLocation();
     }
 
     /**
@@ -297,11 +298,16 @@ public class MainActivity extends Activity implements AMap.OnCameraChangeListene
             isLocationAction = true;
             searchResultAdapter.setSelectedPosition(0);
             aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlocation, 16f));
-            mcircle = aMap.addCircle(new CircleOptions().center(mlocation).radius(500).strokeWidth(5));
+            if (mcircle != null) {
+                mcircle.setCenter(mlocation);
+            } else {
+                mcircle = aMap.addCircle(new CircleOptions().center(mlocation).radius(500).strokeWidth(5));
+            }
             if (searchLatlonPoint != null) {
                 resultData.clear();
                 resultData.add(new PoiItem("ID", searchLatlonPoint,"我的位置", searchLatlonPoint.toString()));
                 doSearchQuery(searchLatlonPoint);
+                searchResultAdapter.notifyDataSetChanged();
             }
         } else {
             String errText = "定位失败," + aMapLocation.getErrorCode()+ ": " + aMapLocation.getErrorInfo();
@@ -319,7 +325,7 @@ public class MainActivity extends Activity implements AMap.OnCameraChangeListene
         query.setPageNum(0);
         poisearch = new PoiSearch(this,query);
         poisearch.setOnPoiSearchListener(this);
-        poisearch.setBound(new PoiSearch.SearchBound(searchLatlonPoint, 500, true));
+        poisearch.setBound(new PoiSearch.SearchBound(centerpoint, 500, true));
         poisearch.searchPOIAsyn();
     }
 
@@ -335,7 +341,6 @@ public class MainActivity extends Activity implements AMap.OnCameraChangeListene
             if (poiResult != null && poiResult.getPois().size() > 0){
                 List<PoiItem> poiItems = poiResult.getPois();
                 resultData.addAll(poiItems);
-                searchResultAdapter.setData(resultData);
                 searchResultAdapter.notifyDataSetChanged();
             } else {
                 Toast.makeText(MainActivity.this, "无搜索结果", Toast.LENGTH_SHORT).show();
@@ -383,6 +388,7 @@ public class MainActivity extends Activity implements AMap.OnCameraChangeListene
                 SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd  hh:mm:ss");
                 String date = sDateFormat.format(new java.util.Date());
                 checkinMarker = aMap.addMarker(new MarkerOptions().position(checkinpoint).title("签到").snippet(date));
+                Toast.makeText(MainActivity.this, "签到成功", Toast.LENGTH_SHORT).show();
             } else{
                 startLocation();
                 Toast.makeText(MainActivity.this, "请定位后重试，定位中。。。", Toast.LENGTH_SHORT).show();
